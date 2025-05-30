@@ -6,3 +6,14 @@
 //
 
 import Foundation
+
+
+struct PostDTO: Decodable {
+    
+    // MARK: - Properties
+    
+    let id: Int
+    let userId: Int
+    let title: String
+    let body: String
+}

@@ -6,3 +6,21 @@
 //
 
 import Foundation
+
+
+struct Comment: Identifiable {
+    
+    // MARK: - Properties
+    
+    var id: Int
+    var authorEmail: String
+    var content: String
+    
+    // MARK: Life cycle
+    
+    init(commentDTO: CommentDTO) {
+        id = commentDTO.id
+        authorEmail = commentDTO.email
+        content = commentDTO.body
+    }
+}

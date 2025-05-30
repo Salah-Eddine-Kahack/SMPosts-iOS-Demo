@@ -8,13 +8,21 @@
 import SwiftUI
 
 
+enum AppEnvironment {
+    case mock
+    case real
+}
+
+
 @main
 struct SMPosts_iOS_DemoApp: App {
+    
+    private var environment: AppEnvironment = .mock
     
     var body: some Scene {
         
         WindowGroup {
-            PostListView()
+            PostListView(appEnvironment: environment)
         }
     }
 }

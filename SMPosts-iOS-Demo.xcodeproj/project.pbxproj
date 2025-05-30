@@ -14,19 +14,11 @@
 			remoteGlobalIDString = 4E2995BF2DE99D8F0031E706;
 			remoteInfo = "SMPosts-iOS-Demo";
 		};
-		4E2995D82DE99D910031E706 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4E2995B82DE99D8F0031E706 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 4E2995BF2DE99D8F0031E706;
-			remoteInfo = "SMPosts-iOS-Demo";
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		4E2995C02DE99D8F0031E706 /* SMPosts-iOS-Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SMPosts-iOS-Demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E2995CD2DE99D910031E706 /* SMPosts-iOS-DemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "SMPosts-iOS-DemoTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4E2995D72DE99D910031E706 /* SMPosts-iOS-DemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "SMPosts-iOS-DemoUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -57,13 +49,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		4E2995D42DE99D910031E706 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -81,7 +66,6 @@
 			children = (
 				4E2995C02DE99D8F0031E706 /* SMPosts-iOS-Demo.app */,
 				4E2995CD2DE99D910031E706 /* SMPosts-iOS-DemoTests.xctest */,
-				4E2995D72DE99D910031E706 /* SMPosts-iOS-DemoUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -134,26 +118,6 @@
 			productReference = 4E2995CD2DE99D910031E706 /* SMPosts-iOS-DemoTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		4E2995D62DE99D910031E706 /* SMPosts-iOS-DemoUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4E2995E72DE99D910031E706 /* Build configuration list for PBXNativeTarget "SMPosts-iOS-DemoUITests" */;
-			buildPhases = (
-				4E2995D32DE99D910031E706 /* Sources */,
-				4E2995D42DE99D910031E706 /* Frameworks */,
-				4E2995D52DE99D910031E706 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				4E2995D92DE99D910031E706 /* PBXTargetDependency */,
-			);
-			name = "SMPosts-iOS-DemoUITests";
-			packageProductDependencies = (
-			);
-			productName = "SMPosts-iOS-DemoUITests";
-			productReference = 4E2995D72DE99D910031E706 /* SMPosts-iOS-DemoUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -168,10 +132,6 @@
 						CreatedOnToolsVersion = 16.3;
 					};
 					4E2995CC2DE99D910031E706 = {
-						CreatedOnToolsVersion = 16.3;
-						TestTargetID = 4E2995BF2DE99D8F0031E706;
-					};
-					4E2995D62DE99D910031E706 = {
 						CreatedOnToolsVersion = 16.3;
 						TestTargetID = 4E2995BF2DE99D8F0031E706;
 					};
@@ -193,7 +153,6 @@
 			targets = (
 				4E2995BF2DE99D8F0031E706 /* SMPosts-iOS-Demo */,
 				4E2995CC2DE99D910031E706 /* SMPosts-iOS-DemoTests */,
-				4E2995D62DE99D910031E706 /* SMPosts-iOS-DemoUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -207,13 +166,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		4E2995CB2DE99D910031E706 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4E2995D52DE99D910031E706 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -237,13 +189,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		4E2995D32DE99D910031E706 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -251,11 +196,6 @@
 			isa = PBXTargetDependency;
 			target = 4E2995BF2DE99D8F0031E706 /* SMPosts-iOS-Demo */;
 			targetProxy = 4E2995CE2DE99D910031E706 /* PBXContainerItemProxy */;
-		};
-		4E2995D92DE99D910031E706 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 4E2995BF2DE99D8F0031E706 /* SMPosts-iOS-Demo */;
-			targetProxy = 4E2995D82DE99D910031E706 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -477,40 +417,6 @@
 			};
 			name = Release;
 		};
-		4E2995E82DE99D910031E706 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JQ875KY9TG;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "SalahEddineKahack.SMPosts-iOS-DemoUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "SMPosts-iOS-Demo";
-			};
-			name = Debug;
-		};
-		4E2995E92DE99D910031E706 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JQ875KY9TG;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "SalahEddineKahack.SMPosts-iOS-DemoUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "SMPosts-iOS-Demo";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -537,15 +443,6 @@
 			buildConfigurations = (
 				4E2995E52DE99D910031E706 /* Debug */,
 				4E2995E62DE99D910031E706 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		4E2995E72DE99D910031E706 /* Build configuration list for PBXNativeTarget "SMPosts-iOS-DemoUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				4E2995E82DE99D910031E706 /* Debug */,
-				4E2995E92DE99D910031E706 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -6,3 +6,19 @@
 //
 
 import Foundation
+
+
+class PostListViewModel: ObservableObject {
+    
+    // MARK: - Properties
+    
+    private let service: PostServiceProtocol
+    
+    // MARK: - Life cycle
+    
+    init(appEnvironment: AppEnvironment) {
+        service = PostServiceFactory.makeService(environment: appEnvironment)
+    }
+    
+    // MARK: - Methods
+}
