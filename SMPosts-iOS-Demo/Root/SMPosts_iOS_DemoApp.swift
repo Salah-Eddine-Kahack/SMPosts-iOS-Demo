@@ -17,7 +17,7 @@ enum AppEnvironment {
 @main
 struct SMPosts_iOS_DemoApp: App {
     
-    private var environment: AppEnvironment = .mock
+    private var environment: AppEnvironment = .real
     
     var body: some Scene {
         

@@ -14,8 +14,12 @@ struct Constants {
     // MARK: - Colors
     
     struct Colors {
+        
         static let primary = Color("AccentColor")
         static let secondary = Color("SecondaryAccentColor")
+        
+        static let background = Color(UIColor.systemBackground)
+        static let secondaryBackground = Color(UIColor.secondarySystemBackground)
     }
 
     // MARK: - Sizes
@@ -31,7 +35,13 @@ struct Constants {
         static let largeCornerRadius: CGFloat = cornerRadius + regularSpacing
         
         struct PostList {
-            static let thumbnailImageSize: CGFloat = 64.0
+            static let thumbnailImageWidth: CGFloat = 280.0
+            static let thumbnailImageHeight: CGFloat = 140.0
+        }
+        
+        struct PostDetail {
+            static let headerImageWidth: CGFloat = 1024.0
+            static let headerImageHeight: CGFloat = 512.0
         }
     }
     
@@ -39,6 +49,7 @@ struct Constants {
     
     struct Icons {
         static let add = Image(systemName: "plus")
+        static let comment = Image(systemName: "bubble.left.and.bubble.right")
     }
     
     // MARK: - Texts
@@ -50,13 +61,15 @@ struct Constants {
         struct PostList {
             private static let context: String = "post-list"
             static let title: String = NSLocalizedString("Posts", comment: context)
-            static let emptyMessage: String = NSLocalizedString("No posts found. Load or create a new post.", comment: context)
+            static let emptyMessage: String = NSLocalizedString("No posts found.\nLoad or create a new post.", comment: context)
+            static let loadingMessageText: String = NSLocalizedString("Loading...", comment: context)
             static let loadPostsButtonTitle: String = NSLocalizedString("Load Posts", comment: context)
         }
         
         struct PostDetail {
             private static let context: String = "post-detail"
             static let commentsLabelText: String = NSLocalizedString("Comments:", comment: context)
+            static let emptyCommentsText: String = NSLocalizedString("No comments", comment: context)
         }
         
         struct PostForm {
@@ -95,8 +108,8 @@ struct Constants {
         
         struct Images {
             static let apiBase = "https://picsum.photos/seed/"
-            static let thumbnailSuffix = "/320/320"
-            static let fullSuffix = "/1024/1024"
+            static let thumbnailSuffix = "/\(Int(Sizes.PostList.thumbnailImageWidth))" + "/\(Int(Sizes.PostList.thumbnailImageHeight))"
+            static let fullSuffix = "/\(Int(Sizes.PostDetail.headerImageWidth))" + "/\(Int(Sizes.PostDetail.headerImageHeight))"
         }
     }
 }

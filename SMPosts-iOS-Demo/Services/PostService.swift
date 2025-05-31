@@ -223,8 +223,8 @@ extension PostServiceProtocol {
                 content: postDTO.body,
                 authorEmail: user.email,
                 comments: comments,
-                thumbnailImageURL: makeThumbnailImageURL(seed: postDTO.id),
-                detailImageURL: makeFullImageURL(seed: postDTO.id),
+                thumbnailURL: Self.makeThumbnailImageURL(seed: postDTO.id),
+                detailImageURL: Self.makeFullImageURL(seed: postDTO.id),
                 thumbnailImage: nil,
                 detailImage: nil
             )
@@ -233,7 +233,7 @@ extension PostServiceProtocol {
         .eraseToAnyPublisher()
     }
     
-    private func makeThumbnailImageURL(seed: Int) -> URL? {
+    static func makeThumbnailImageURL(seed: Int) -> URL? {
         
         let urlString = Constants.URLs.Images.apiBase
                       + String(seed)
@@ -243,7 +243,7 @@ extension PostServiceProtocol {
         return url
     }
     
-    private func makeFullImageURL(seed: Int) -> URL? {
+    static func makeFullImageURL(seed: Int) -> URL? {
         
         let urlString = Constants.URLs.Images.apiBase
                       + String(seed)
