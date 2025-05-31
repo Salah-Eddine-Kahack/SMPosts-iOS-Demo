@@ -26,4 +26,27 @@ struct Post: Identifiable {
     // Or loaded locally when a post is created
     let thumbnailImage: Image?
     let detailImage: Image?
+    
+    // MARK: - Life cycle
+    
+    init(id: Int,
+         title: String,
+         content: String,
+         authorEmail: String,
+         comments: [Comment],
+         thumbnailImageURL: URL?,
+         detailImageURL: URL?,
+         thumbnailImage: Image?,
+         detailImage: Image?
+    ) {
+        self.id = id
+        self.title = title.capitalizedFirstLetter()
+        self.content = content.capitalizedFirstLetter()
+        self.authorEmail = authorEmail.lowercased()
+        self.comments = comments
+        self.thumbnailImageURL = thumbnailImageURL
+        self.detailImageURL = detailImageURL
+        self.thumbnailImage = thumbnailImage
+        self.detailImage = detailImage
+    }
 }

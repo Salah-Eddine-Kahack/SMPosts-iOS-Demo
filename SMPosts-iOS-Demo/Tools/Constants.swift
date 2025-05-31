@@ -92,5 +92,11 @@ struct Constants {
             static let apiBase = "https://jsonplaceholder.typicode.com/users"
             static let apiURL = URL(string: apiBase)
         }
+        
+        struct Images {
+            static let apiBase = "https://picsum.photos/seed/"
+            static let thumbnailSuffix = "/320/320"
+            static let fullSuffix = "/1024/1024"
+        }
     }
 }

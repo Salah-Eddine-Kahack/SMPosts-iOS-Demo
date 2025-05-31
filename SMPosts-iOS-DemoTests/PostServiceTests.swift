@@ -18,21 +18,21 @@ final class PostServiceTests: XCTestCase {
     
     // MARK: - Tests
 
-    func test_PostService_fetchPosts_from_mock_data() throws {
+    func test_PostService_fetchDTOPosts_from_mock_data() throws {
         
         // Setup test
         let expectation = self.expectation(description: "Fetch posts expectation")
         let service = PostServiceFactory.makeService(environment: .mock)
         
         try XCTContext.runActivity(
-            named: "fetchPosts should be able to decode and return a list of posts"
+            named: "fetchDTOPosts should be able to decode and return a list of posts"
         ) { _ in
             
             var receivedPosts: [PostDTO] = []
             var receivedError: Error?
             
             // Fetch data
-            service.fetchPosts()
+            service.fetchDTOPosts()
             .sink(receiveCompletion: { completion in
                 
                 switch completion {
@@ -81,21 +81,21 @@ final class PostServiceTests: XCTestCase {
         }
     }
     
-    func test_PostService_fetchComments_from_mock_data() throws {
+    func test_PostService_fetchDTOComments_from_mock_data() throws {
         
         // Setup test
         let expectation = self.expectation(description: "Fetch comments expectation")
         let service = PostServiceFactory.makeService(environment: .mock)
         
         try XCTContext.runActivity(
-            named: "fetchComments should be able to decode and return a list of comments"
+            named: "fetchDTOComments should be able to decode and return a list of comments"
         ) { _ in
             
             var receivedComments: [CommentDTO] = []
             var receivedError: Error?
             
             // Fetch data
-            service.fetchComments()
+            service.fetchDTOComments()
             .sink(receiveCompletion: { completion in
                 
                 switch completion {
@@ -105,8 +105,8 @@ final class PostServiceTests: XCTestCase {
                 
                 expectation.fulfill()
             },
-            receiveValue: { posts in
-                receivedComments = posts
+            receiveValue: { comments in
+                receivedComments = comments
             })
             .store(in: &cancellables)
             
@@ -144,21 +144,21 @@ final class PostServiceTests: XCTestCase {
         }
     }
     
-    func test_PostService_fetchUsers_from_mock_data() throws {
+    func test_PostService_fetchDTOUsers_from_mock_data() throws {
         
         // Setup test
         let expectation = self.expectation(description: "Fetch users expectation")
         let service = PostServiceFactory.makeService(environment: .mock)
         
         try XCTContext.runActivity(
-            named: "fetchUsers should be able to decode and return a list of users"
+            named: "fetchDTOUsers should be able to decode and return a list of users"
         ) { _ in
             
             var receivedUsers: [UserDTO] = []
             var receivedError: Error?
             
             // Fetch data
-            service.fetchUsers()
+            service.fetchDTOUsers()
             .sink(receiveCompletion: { completion in
                 
                 switch completion {
@@ -168,8 +168,8 @@ final class PostServiceTests: XCTestCase {
                 
                 expectation.fulfill()
             },
-            receiveValue: { posts in
-                receivedUsers = posts
+            receiveValue: { users in
+                receivedUsers = users
             })
             .store(in: &cancellables)
             
@@ -211,23 +211,29 @@ final class PostServiceTests: XCTestCase {
         
         let service = PostServiceFactory.makeService(environment: .mock)
         
-        XCTContext.runActivity(named: "fetchUser should return nil for an unknown user ID") { _ in
+        XCTContext.runActivity(
+            named: "fetchDTOUser should return nil for an unknown user ID"
+        ) { _ in
             
             // Setup test 1
             let expectation = self.expectation(description: "Fetch user with an unknown user ID")
             var receivedUser: UserDTO?
             var receivedError: Error?
             
-            service.fetchUser(userId: -1)
-                .sink(receiveCompletion: { completion in
-                    if case .failure(let error) = completion {
-                        receivedError = error
-                    }
-                    expectation.fulfill()
-                }, receiveValue: { user in
-                    receivedUser = user
-                })
-                .store(in: &cancellables)
+            service.fetchDTOUser(userId: -1)
+            .sink(receiveCompletion: { completion in
+                
+                switch completion {
+                    case .failure(let error): receivedError = error
+                    case .finished: break
+                }
+                
+                expectation.fulfill()
+            },
+            receiveValue: { user in
+                receivedUser = user
+            })
+            .store(in: &cancellables)
             
             // Give it time to load
             waitForExpectations(timeout: 5.0)
@@ -237,7 +243,9 @@ final class PostServiceTests: XCTestCase {
             XCTAssertNil(receivedUser, "Expected nil for an unknown user ID, but somehow got a user")
         }
         
-        try XCTContext.runActivity(named: "fetchUser should return a valid user for a known user ID") { _ in
+        try XCTContext.runActivity(
+            named: "fetchDTOUser should return a valid user for a known user ID"
+        ) { _ in
             
             // Setup test 2
             let expectation = self.expectation(description: "Fetch user with a known user ID")
@@ -245,16 +253,20 @@ final class PostServiceTests: XCTestCase {
             var receivedError: Error?
             
             // Fetch data
-            service.fetchUser(userId: 3)
-                .sink(receiveCompletion: { completion in
-                    if case .failure(let error) = completion {
-                        receivedError = error
-                    }
-                    expectation.fulfill()
-                }, receiveValue: { user in
-                    receivedUser = user
-                })
-                .store(in: &cancellables)
+            service.fetchDTOUser(userId: 3)
+            .sink(receiveCompletion: { completion in
+                
+                switch completion {
+                    case .failure(let error): receivedError = error
+                    case .finished: break
+                }
+                
+                expectation.fulfill()
+            },
+            receiveValue: { user in
+                receivedUser = user
+            })
+            .store(in: &cancellables)
             
             // Give it time to load
             waitForExpectations(timeout: 5.0)
@@ -284,7 +296,9 @@ final class PostServiceTests: XCTestCase {
         
         let service = PostServiceFactory.makeService(environment: .mock)
         
-        XCTContext.runActivity(named: "fetchComments should return zero comments for an unknown post ID") { _ in
+        XCTContext.runActivity(
+            named: "fetchDTOComments should return zero comments for an unknown post ID"
+        ) { _ in
             
             // Setup test 1
             let expectation = self.expectation(description: "Fetch comments for an unknown post ID")
@@ -292,16 +306,20 @@ final class PostServiceTests: XCTestCase {
             var receivedError: Error?
             
             // Fetch data
-            service.fetchComments(postId: -1)
-                .sink(receiveCompletion: { completion in
-                    if case .failure(let error) = completion {
-                        receivedError = error
-                    }
-                    expectation.fulfill()
-                }, receiveValue: { comments in
-                    receivedComments = comments
-                })
-                .store(in: &cancellables)
+            service.fetchDTOComments(postId: -1)
+            .sink(receiveCompletion: { completion in
+                
+                switch completion {
+                    case .failure(let error): receivedError = error
+                    case .finished: break
+                }
+                
+                expectation.fulfill()
+            },
+            receiveValue: { comments in
+                receivedComments = comments
+            })
+            .store(in: &cancellables)
             
             // Give it time to load
             waitForExpectations(timeout: 5.0)
@@ -311,7 +329,9 @@ final class PostServiceTests: XCTestCase {
             XCTAssertTrue(receivedComments.isEmpty, "Expected zero comments, but somehow got \(receivedComments.count)")
         }
         
-        try XCTContext.runActivity(named: "fetchComments should return a list of valid comments for a known post ID") { _ in
+        try XCTContext.runActivity(
+            named: "fetchDTOComments should return a list of valid comments for a known post ID"
+        ) { _ in
             
             // Setup test 2
             let expectation = self.expectation(description: "Fetch comments for a known post ID")
@@ -319,16 +339,20 @@ final class PostServiceTests: XCTestCase {
             var receivedError: Error?
             
             // Fetch data
-            service.fetchComments(postId: 2)
-                .sink(receiveCompletion: { completion in
-                    if case .failure(let error) = completion {
-                        receivedError = error
-                    }
-                    expectation.fulfill()
-                }, receiveValue: { comments in
-                    receivedComments = comments
-                })
-                .store(in: &cancellables)
+            service.fetchDTOComments(postId: 2)
+            .sink(receiveCompletion: { completion in
+                
+                switch completion {
+                    case .failure(let error): receivedError = error
+                    case .finished: break
+                }
+                
+                expectation.fulfill()
+            },
+            receiveValue: { comments in
+                receivedComments = comments
+            })
+            .store(in: &cancellables)
             
             // Give it time to load
             waitForExpectations(timeout: 5.0)
@@ -353,6 +377,86 @@ final class PostServiceTests: XCTestCase {
                 lastComment.name,
                 expectedLastCommentName,
                 "Expected last comment's name to be \"\(expectedLastCommentName)\", but got \(lastComment.name) instead"
+            )
+        }
+    }
+    
+    func test_PostService_fetchPosts_from_mock_data() throws {
+        
+        let service = PostServiceFactory.makeService(environment: .mock)
+        let expectation = self.expectation(description: "Fetch displayable posts from mock")
+        
+        try XCTContext.runActivity(
+            named: "fetchPosts should return a list of valid displayable posts from mock data"
+        ) { _ in
+            
+            var receivedPosts: [Post] = []
+            var receivedError: Error?
+            
+            // Fetch data
+            service.fetchPosts()
+            .sink(receiveCompletion: { completion in
+                
+                switch completion {
+                    case .failure(let error): receivedError = error
+                    case .finished: break
+                }
+                
+                expectation.fulfill()
+            },
+            receiveValue: { posts in
+                receivedPosts = posts
+            })
+            .store(in: &cancellables)
+            
+            // Give it time to load
+            waitForExpectations(timeout: 5.0)
+            
+            // Check results
+            XCTAssertNil(
+                receivedError,
+                "Expected no error, but received \(receivedError.debugDescription) instead"
+            )
+            
+            XCTAssertEqual(
+                receivedPosts.count, 100,
+                "Expected 100 posts, but received \(receivedPosts.count) instead"
+            )
+            
+            let firstPost = try XCTUnwrap(receivedPosts.first)
+            let expectedFirstPostAuthorEmail = "sincere@april.biz"
+            
+            XCTAssertEqual(
+                firstPost.authorEmail,
+                expectedFirstPostAuthorEmail,
+                "Expected first post's author email to be \(expectedFirstPostAuthorEmail), but got \(firstPost.authorEmail) instead"
+            )
+            
+            let firstPostFirstComment = try XCTUnwrap(firstPost.comments.first)
+            let expectedFirstPostFistCommentContent = "Laudantium enim quasi est quidem magnam voluptate ipsam eos\ntempora quo necessitatibus\ndolor quam autem quasi\nreiciendis et nam sapiente accusantium"
+            
+            XCTAssertEqual(
+                firstPostFirstComment.content,
+                expectedFirstPostFistCommentContent,
+                "Expected first post's first comment's content to be \(expectedFirstPostFistCommentContent), but got \(firstPostFirstComment.content) instead"
+            )
+            
+            let lastPost = try XCTUnwrap(receivedPosts.last)
+            let expectedLastPostCommentsCount = 5
+            
+            XCTAssertEqual(
+                lastPost.comments.count,
+                expectedLastPostCommentsCount,
+                "Expected last post's comments to be \(expectedLastPostCommentsCount), but got \(lastPost.comments.count) instead"
+            )
+            
+            let lastPostLastComment = try XCTUnwrap(lastPost.comments.last)
+            let expectedLastPostLastCommentAuthorEmail = "emma@joanny.ca"
+            
+            XCTAssertEqual(
+                lastPostLastComment.authorEmail,
+                expectedLastPostLastCommentAuthorEmail,
+                "Expected last post's last comment's author's email to be \(expectedLastPostLastCommentAuthorEmail), but got \(lastPostLastComment.authorEmail) instead"
             )
         }
     }

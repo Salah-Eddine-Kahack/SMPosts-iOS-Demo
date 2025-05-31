@@ -13,12 +13,14 @@ import Combine
 
 protocol PostServiceProtocol {
     
-    func fetchUsers() -> AnyPublisher<[UserDTO], Error>
-    func fetchComments() -> AnyPublisher<[CommentDTO], Error>
-    func fetchPosts() -> AnyPublisher<[PostDTO], Error>
+    func fetchDTOUsers() -> AnyPublisher<[UserDTO], Error>
+    func fetchDTOComments() -> AnyPublisher<[CommentDTO], Error>
+    func fetchDTOPosts() -> AnyPublisher<[PostDTO], Error>
     
-    func fetchUser(userId: Int) -> AnyPublisher<UserDTO?, Error>
-    func fetchComments(postId: Int) -> AnyPublisher<[CommentDTO], Error>
+    func fetchDTOUser(userId: Int) -> AnyPublisher<UserDTO?, Error>
+    func fetchDTOComments(postId: Int) -> AnyPublisher<[CommentDTO], Error>
+    
+    func fetchPosts() -> AnyPublisher<[Post], Error>
 }
 
 // MARK: - Error types
@@ -79,30 +81,30 @@ class MockPostService: PostServiceProtocol {
         }
     }
     
-    func fetchPosts() -> AnyPublisher<[PostDTO], Error> {
+    func fetchDTOPosts() -> AnyPublisher<[PostDTO], Error> {
         fetch(from: Constants.URLs.Posts.mockFileURL)
     }
     
-    func fetchComments() -> AnyPublisher<[CommentDTO], Error> {
+    func fetchDTOComments() -> AnyPublisher<[CommentDTO], Error> {
         fetch(from: Constants.URLs.Comments.mockFileURL)
     }
     
-    func fetchUsers() -> AnyPublisher<[UserDTO], Error> {
+    func fetchDTOUsers() -> AnyPublisher<[UserDTO], Error> {
         fetch(from: Constants.URLs.Users.mockFileURL)
     }
     
-    func fetchUser(userId: Int) -> AnyPublisher<UserDTO?, Error> {
+    func fetchDTOUser(userId: Int) -> AnyPublisher<UserDTO?, Error> {
         
-        fetchUsers()
+        fetchDTOUsers()
         .map { users in
             users.first { $0.id == userId }
         }
         .eraseToAnyPublisher()
     }
     
-    func fetchComments(postId: Int) -> AnyPublisher<[CommentDTO], Error> {
+    func fetchDTOComments(postId: Int) -> AnyPublisher<[CommentDTO], Error> {
         
-        fetchComments()
+        fetchDTOComments()
         .map { comments in
             comments.filter { $0.postId == postId }
         }
@@ -119,12 +121,12 @@ class PostService: PostServiceProtocol {
         guard let url = url else {
             Logger.log("Invalid API URL", level: .error)
             return Fail(error: URLError(.badURL))
-                   .eraseToAnyPublisher()
+                .eraseToAnyPublisher()
         }
         
         guard ReachabilityHelper.shared.hasInternetAccess else {
             return Fail(error: PostServiceError.noInternet)
-                   .eraseToAnyPublisher()
+                .eraseToAnyPublisher()
         }
         
         return URLSession.shared.dataTaskPublisher(for: url)
@@ -146,19 +148,19 @@ class PostService: PostServiceProtocol {
             .eraseToAnyPublisher()
     }
     
-    func fetchPosts() -> AnyPublisher<[PostDTO], Error> {
+    func fetchDTOPosts() -> AnyPublisher<[PostDTO], Error> {
         fetch(from: Constants.URLs.Posts.apiURL)
     }
-
-    func fetchComments() -> AnyPublisher<[CommentDTO], Error> {
+    
+    func fetchDTOComments() -> AnyPublisher<[CommentDTO], Error> {
         fetch(from: Constants.URLs.Comments.apiURL)
     }
-
-    func fetchUsers() -> AnyPublisher<[UserDTO], Error> {
+    
+    func fetchDTOUsers() -> AnyPublisher<[UserDTO], Error> {
         fetch(from: Constants.URLs.Users.apiURL)
     }
     
-    func fetchUser(userId: Int) -> AnyPublisher<UserDTO?, Error> {
+    func fetchDTOUser(userId: Int) -> AnyPublisher<UserDTO?, Error> {
         
         let url = URL(string: "\(Constants.URLs.Users.apiBase)?id=\(userId)")
         
@@ -169,10 +171,85 @@ class PostService: PostServiceProtocol {
             .eraseToAnyPublisher()
     }
     
-    func fetchComments(postId: Int) -> AnyPublisher<[CommentDTO], Error> {
+    func fetchDTOComments(postId: Int) -> AnyPublisher<[CommentDTO], Error> {
         
         let url = URL(string: "\(Constants.URLs.Comments.apiBase)?postId=\(postId)")
         
         return fetch(from: url)
+    }
+}
+
+// MARK: - Common implementation
+
+extension PostServiceProtocol {
+
+    func fetchPosts() -> AnyPublisher<[Post], Error> {
+        
+        fetchDTOPosts()
+        .flatMap { postDTOs in
+            Publishers.MergeMany(
+                postDTOs.map {
+                    self.makePost(postDTO: $0)
+                }
+            )
+            .compactMap { $0 }
+            .collect()
+        }
+        .eraseToAnyPublisher()
+    }
+
+    private func makePost(postDTO: PostDTO) -> AnyPublisher<Post?, Never> {
+        
+        // Loads user and comments data for the post
+        let userPublisher = fetchDTOUser(userId: postDTO.userId)
+        let commentsPublisher = fetchDTOComments(postId: postDTO.id)
+
+        // Make a displayable `Post` object with all the data
+        return Publishers.Zip(userPublisher, commentsPublisher)
+        .map { user, commentDTOs -> Post? in
+            
+            guard let user = user else {
+                Logger.log("User with ID \(postDTO.userId) not found.", level: .warning)
+                return nil
+            }
+
+            let comments = commentDTOs.map {
+                Comment(commentDTO: $0)
+            }
+
+            return Post(
+                id: postDTO.id,
+                title: postDTO.title,
+                content: postDTO.body,
+                authorEmail: user.email,
+                comments: comments,
+                thumbnailImageURL: makeThumbnailImageURL(seed: postDTO.id),
+                detailImageURL: makeFullImageURL(seed: postDTO.id),
+                thumbnailImage: nil,
+                detailImage: nil
+            )
+        }
+        .replaceError(with: nil)
+        .eraseToAnyPublisher()
+    }
+    
+    private func makeThumbnailImageURL(seed: Int) -> URL? {
+        
+        let urlString = Constants.URLs.Images.apiBase
+                      + String(seed)
+                      + Constants.URLs.Images.thumbnailSuffix
+        
+        let url = URL(string: urlString)
+        return url
+    }
+    
+    private func makeFullImageURL(seed: Int) -> URL? {
+        
+        let urlString = Constants.URLs.Images.apiBase
+                      + String(seed)
+                      + Constants.URLs.Images.fullSuffix
+        
+        let url = URL(string: urlString)
+        return url
     }
 }

@@ -20,7 +20,7 @@ struct Comment: Identifiable {
     
     init(commentDTO: CommentDTO) {
         id = commentDTO.id
-        authorEmail = commentDTO.email
-        content = commentDTO.body
+        authorEmail = commentDTO.email.lowercased()
+        content = commentDTO.body.capitalizedFirstLetter()
     }
 }
