@@ -26,7 +26,7 @@ struct PostListView: View {
         
         NavigationView {
             
-            Group {
+            VStack(alignment: .center) {
                 
                 switch viewModel.listState {
                         
@@ -35,8 +35,10 @@ struct PostListView: View {
                             .font(.headline)
                         
                     case .loading:
-                        Text(Constants.Texts.PostList.loadingMessageText)
-                            .font(.headline)
+                        ProgressView {
+                            Text(Constants.Texts.PostList.loadingMessageText)
+                                .font(.headline)
+                        }
                         
                     case .loaded:
                         
@@ -52,8 +54,23 @@ struct PostListView: View {
                         .listRowSpacing(Constants.Sizes.regularSpacing)
                         
                     case .error(let message):
-                        Text(message)
+                        
+                        VStack(spacing: Constants.Sizes.mediumSpacing) {
+                            Text(message)
                             .font(.headline)
+                            
+                            Button {
+                                viewModel.loadPosts()
+                            }
+                            label: {
+                                Text(Constants.Texts.PostList.loadPostsButtonTitle)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.white)
+                                .padding()
+                                .background(Constants.Colors.primary)
+                                .cornerRadius(Constants.Sizes.regularSpacing)
+                            }
+                        }
                 }
             }
             .navigationBarTitle(Text(Constants.Texts.PostList.title))
@@ -62,8 +79,6 @@ struct PostListView: View {
             }
         }
     }
-    
-    // MARK: - Methods
 }
 
 

@@ -8,7 +8,7 @@
 import Foundation
 
 
-struct PostDTO: Decodable {
+struct PostDTO: Cachable {
     
     // MARK: - Properties
     
@@ -16,4 +16,10 @@ struct PostDTO: Decodable {
     let userId: Int
     let title: String
     let body: String
+    
+    // MARK: - Getters
+    
+    static var cacheKey: String {
+        CacheService.Keys.postsDTO
+    }
 }

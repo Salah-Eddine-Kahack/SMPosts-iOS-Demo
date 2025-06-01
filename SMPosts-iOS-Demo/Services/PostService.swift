@@ -13,8 +13,8 @@ import Combine
 
 protocol PostServiceProtocol {
     
-    func fetchDTOUsers() -> AnyPublisher<[UserDTO], Error>
-    func fetchDTOComments() -> AnyPublisher<[CommentDTO], Error>
+    func fetchDTOUsers() -> AnyPublisher<[UserDTO], Error> // Mainly for Unit Testing
+    func fetchDTOComments() -> AnyPublisher<[CommentDTO], Error> // Mainly for Unit Testing
     func fetchDTOPosts() -> AnyPublisher<[PostDTO], Error>
     
     func fetchDTOUser(userId: Int) -> AnyPublisher<UserDTO?, Error>
@@ -55,7 +55,7 @@ struct PostServiceFactory {
 
 class MockPostService: PostServiceProtocol {
     
-    private func fetch<T: Decodable>(from url: URL?) -> AnyPublisher<T, Error> {
+    private func fetch<T: Decodable>(from url: URL?) -> AnyPublisher<[T], Error> {
         
         guard let url,
               let data = try? Data(contentsOf: url)
@@ -67,8 +67,8 @@ class MockPostService: PostServiceProtocol {
         }
 
         do {
-            let response = try JSONDecoder().decode(T.self, from: data)
-            
+            let response = try JSONDecoder().decode([T].self, from: data)
+                        
             return Just(response)
                 .setFailureType(to: Error.self)
                 .eraseToAnyPublisher()
@@ -110,13 +110,28 @@ class MockPostService: PostServiceProtocol {
         }
         .eraseToAnyPublisher()
     }
+    
+    func fetchPosts() -> AnyPublisher<[Post], Error> {
+        
+        fetchDTOPosts()
+        .flatMap { postDTOs in
+            Publishers.MergeMany(
+                postDTOs.map {
+                    self.makePost(postDTO: $0)
+                }
+            )
+            .compactMap { $0 }
+            .collect()
+        }
+        .eraseToAnyPublisher()
+    }
 }
 
 // MARK: - Real Service
 
 class PostService: PostServiceProtocol {
     
-    private func fetch<T: Decodable>(from url: URL?) -> AnyPublisher<T, Error> {
+    private func fetch<T: Cachable>(from url: URL?) -> AnyPublisher<[T], Error> {
         
         guard let url = url else {
             Logger.log("Invalid API URL", level: .error)
@@ -139,25 +154,28 @@ class PostService: PostServiceProtocol {
                 }
                 return data
             }
-            .decode(type: T.self, decoder: JSONDecoder())
-            .catch { error -> AnyPublisher<T, Error> in
+            .decode(type: [T].self, decoder: JSONDecoder())
+            .catch { error -> AnyPublisher<[T], Error> in
                 
                 Logger.log("Failed to fetch or decode data: \(error)", level: .error)
                 return Fail(error: error).eraseToAnyPublisher()
             }
+            .handleEvents(receiveOutput: { objects in
+                CacheService.shared.save(objects)
+            })
             .eraseToAnyPublisher()
     }
     
     func fetchDTOPosts() -> AnyPublisher<[PostDTO], Error> {
-        fetch(from: Constants.URLs.Posts.apiURL)
+        loadFromCache() ?? fetch(from: Constants.URLs.Posts.apiURL)
     }
     
     func fetchDTOComments() -> AnyPublisher<[CommentDTO], Error> {
-        fetch(from: Constants.URLs.Comments.apiURL)
+        loadFromCache() ?? fetch(from: Constants.URLs.Comments.apiURL)
     }
     
     func fetchDTOUsers() -> AnyPublisher<[UserDTO], Error> {
-        fetch(from: Constants.URLs.Users.apiURL)
+        loadFromCache() ?? fetch(from: Constants.URLs.Users.apiURL)
     }
     
     func fetchDTOUser(userId: Int) -> AnyPublisher<UserDTO?, Error> {
@@ -177,14 +195,11 @@ class PostService: PostServiceProtocol {
         
         return fetch(from: url)
     }
-}
-
-// MARK: - Common implementation
-
-extension PostServiceProtocol {
-
+    
     func fetchPosts() -> AnyPublisher<[Post], Error> {
         
+        loadFromCache()
+        ??
         fetchDTOPosts()
         .flatMap { postDTOs in
             Publishers.MergeMany(
@@ -195,10 +210,31 @@ extension PostServiceProtocol {
             .compactMap { $0 }
             .collect()
         }
+        .handleEvents(receiveOutput: { objects in
+            CacheService.shared.save(objects)
+        })
         .eraseToAnyPublisher()
     }
+    
+    private func loadFromCache<T: Cachable>() -> AnyPublisher<[T], Error>? {
+        
+        let cachedObjects: [T] = CacheService.shared.load()
+        
+        if cachedObjects.isEmpty {
+            return nil
+        }
+        
+        return Just(cachedObjects)
+        .setFailureType(to: Error.self)
+        .eraseToAnyPublisher()
+    }
+}
 
-    private func makePost(postDTO: PostDTO) -> AnyPublisher<Post?, Never> {
+// MARK: - Common implementation
+
+extension PostServiceProtocol {
+
+    fileprivate func makePost(postDTO: PostDTO) -> AnyPublisher<Post?, Never> {
         
         // Loads user and comments data for the post
         let userPublisher = fetchDTOUser(userId: postDTO.userId)
@@ -224,9 +260,7 @@ extension PostServiceProtocol {
                 authorEmail: user.email,
                 comments: comments,
                 thumbnailURL: Self.makeThumbnailImageURL(seed: postDTO.id),
-                detailImageURL: Self.makeFullImageURL(seed: postDTO.id),
-                thumbnailImage: nil,
-                detailImage: nil
+                detailImageURL: Self.makeFullImageURL(seed: postDTO.id)
             )
         }
         .replaceError(with: nil)

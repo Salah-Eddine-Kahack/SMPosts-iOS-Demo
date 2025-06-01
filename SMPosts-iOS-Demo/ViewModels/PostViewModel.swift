@@ -38,16 +38,15 @@ class PostListViewModel: ObservableObject {
     
     func loadPosts() {
         
-        // Avoid multiple fetches
-        if case .loading = listState {
-            Logger.log("Tried to fetch posts while already loading.", level: .debug)
+        // Only load posts if empty
+        if case .loaded = listState {
+            Logger.log("Tried to load posts while already loaded.", level: .debug)
             return
         }
         
-        // Avoid offline fetching
-        guard ReachabilityHelper.shared.hasInternetAccess
-        else {
-            listState = .error(message: Constants.Texts.Errors.noInternetConnection)
+        // Avoid multiple fetches
+        if case .loading = listState {
+            Logger.log("Tried to load posts while already loading.", level: .debug)
             return
         }
         
@@ -56,6 +55,7 @@ class PostListViewModel: ObservableObject {
         
         // Load posts
         service.fetchPosts()
+        .receive(on: DispatchQueue.main)
         .sink { [weak self] completion in
             
             guard let self else { return }

@@ -6,10 +6,9 @@
 //
 
 import Foundation
-import SwiftUI
 
 
-struct Post: Identifiable {
+struct Post: Identifiable, Cachable {
     
     // MARK: - Properties
     
@@ -19,13 +18,14 @@ struct Post: Identifiable {
     let authorEmail: String
     let comments: [Comment]
     
-    // Images can either be loaded from an URL
     let thumbnailURL: URL?
     let detailImageURL: URL?
-
-    // Or loaded locally when a post is created
-    let thumbnailImage: Image?
-    let detailImage: Image?
+    
+    // MARK: - Getters
+    
+    static var cacheKey: String {
+        CacheService.Keys.posts
+    }
     
     // MARK: - Life cycle
     
@@ -35,9 +35,7 @@ struct Post: Identifiable {
          authorEmail: String,
          comments: [Comment],
          thumbnailURL: URL?,
-         detailImageURL: URL?,
-         thumbnailImage: Image?,
-         detailImage: Image?
+         detailImageURL: URL?
     ) {
         self.id = id
         self.title = title.capitalizedFirstLetter()
@@ -46,8 +44,6 @@ struct Post: Identifiable {
         self.comments = comments
         self.thumbnailURL = thumbnailURL
         self.detailImageURL = detailImageURL
-        self.thumbnailImage = thumbnailImage
-        self.detailImage = detailImage
     }
 }
 
@@ -67,9 +63,7 @@ extension Post {
                 Comment.mock3
             ],
             thumbnailURL: PostService.makeThumbnailImageURL(seed: 2),
-            detailImageURL: PostService.makeFullImageURL(seed: 2),
-            thumbnailImage: nil,
-            detailImage: nil
+            detailImageURL: PostService.makeFullImageURL(seed: 2)
         )
     }
 }

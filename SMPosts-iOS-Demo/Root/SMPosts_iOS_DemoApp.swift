@@ -19,6 +19,10 @@ struct SMPosts_iOS_DemoApp: App {
     
     private var environment: AppEnvironment = .real
     
+    init() {
+        CacheService.shared.clearCacheAtLaunchIfNeeded()
+    }
+    
     var body: some Scene {
         
         WindowGroup {

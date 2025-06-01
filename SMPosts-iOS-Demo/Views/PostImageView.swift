@@ -18,27 +18,25 @@ struct PostImageView: View {
     
     var body: some View {
         
-        AsyncImage(url: url) { result in
+        ZStack {
             
-            if let image = result.image {
-                image
-                .resizable()
-            }
-            else {
-                ZStack {
-                    
-                    Constants.Colors.primary.opacity(0.2)
-                    
-                    if result.error != nil {
-                        Text("Failed to load image")
-                            .foregroundColor(Constants.Colors.secondary.opacity(0.5))
-                    }
-                    else {
+            Constants.Colors.primary.opacity(0.2)
+            
+            CachedAsyncImage(url: url) { phase in
+                
+                switch phase {
+                        
+                    case .empty:
                         ProgressView()
-                    }
+                        
+                    case .success(let image):
+                        image.resizable()
+                        
+                    default:
+                        Text("Failed to load image")
+                        .foregroundColor(Constants.Colors.secondary.opacity(0.5))
                 }
             }
-            
         }
     }
 }

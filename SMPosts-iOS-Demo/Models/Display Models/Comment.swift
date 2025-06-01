@@ -8,13 +8,19 @@
 import Foundation
 
 
-struct Comment: Identifiable {
+struct Comment: Identifiable, Cachable {
     
     // MARK: - Properties
     
     var id: Int
     var authorEmail: String
     var content: String
+    
+    // MARK: - Getters
+    
+    static var cacheKey: String {
+        CacheService.Keys.comments
+    }
     
     // MARK: Life cycle
     

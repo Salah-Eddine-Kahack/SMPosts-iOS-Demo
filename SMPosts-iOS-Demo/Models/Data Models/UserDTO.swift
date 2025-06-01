@@ -8,14 +8,14 @@
 import Foundation
 
 
-struct UserDTO: Decodable {
+struct UserDTO: Cachable {
     
     // MARK: - Structs
     
-    struct Address: Decodable {
+    struct Address: Codable {
         
         // Structs
-        struct Geo: Decodable {
+        struct Geo: Codable {
             let lat: Double
             let lng: Double
         }
@@ -27,7 +27,7 @@ struct UserDTO: Decodable {
         let zipcode: String
     }
     
-    struct Company: Decodable {
+    struct Company: Codable {
         
         let name: String
         let catchPhrase: String
@@ -44,4 +44,10 @@ struct UserDTO: Decodable {
     let phone: String
     let website: String
     let company: Company
+    
+    // MARK: - Getters
+    
+    static var cacheKey: String {
+        CacheService.Keys.usersDTO
+    }
 }
