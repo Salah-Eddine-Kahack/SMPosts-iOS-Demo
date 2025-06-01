@@ -8,7 +8,7 @@
 import Foundation
 
 
-protocol Cachable: Codable {
+protocol Cachable: Codable, Identifiable {
     
     static var cacheKey: String { get }
 }
@@ -21,6 +21,8 @@ final class CacheService {
     struct Keys {
         
         fileprivate static let clearOnLaunch = "clear_cache_on_launch_key"
+        fileprivate static let currentAppEnvironmentKey = "app_environment_key"
+        fileprivate static let previousAppEnvironmentKey = "previous_app_environment_key"
 
         static let postsDTO = "posts_dto_cache_key"
         static let commentsDTO = "comments_dto_cache_key"
@@ -44,8 +46,7 @@ final class CacheService {
     
     // MARK: - Methods
 
-    func save<T: Cachable>(_ objects: [T]) {
-        
+    func saveArrayOfObjects<T: Cachable>(_ objects: [T]) {
         do {
             let data = try JSONEncoder().encode(objects)
             defaults.set(data, forKey: T.cacheKey)
@@ -56,7 +57,26 @@ final class CacheService {
         }
     }
 
-    func load<T: Cachable>() -> [T] {
+    func saveObject<T: Cachable>(_ object: T) {
+        
+        var cachedObjects: [T] = loadArrayOfObjects()
+        cachedObjects.append(object)
+        
+        saveArrayOfObjects(cachedObjects)
+    }
+    
+    func deleteObject<T: Cachable>(_ object: T) {
+        
+        var cachedObjects: [T] = loadArrayOfObjects()
+        
+        cachedObjects.removeAll {
+            $0.id == object.id
+        }
+        
+        saveArrayOfObjects(cachedObjects)
+    }
+    
+    func loadArrayOfObjects<T: Cachable>() -> [T] {
         
         guard let data = defaults.data(forKey: T.cacheKey) else {
             Logger.log("No cached \(T.cacheKey) found", level: .debug)
@@ -72,7 +92,7 @@ final class CacheService {
         }
     }
 
-    func clear(cacheKey: String) {
+    func clearAllObjects(cacheKey: String) {
         
         if defaults.object(forKey: cacheKey) != nil {
             defaults.removeObject(forKey: cacheKey)
@@ -94,7 +114,9 @@ extension CacheService {
 
         if shouldClear {
             
-            clearAllData()
+            Keys.allData.forEach {
+                clearAllObjects(cacheKey: $0)
+            }
             
             Logger.log("Cache cleared via iOS Settings toggle", level: .debug)
             
@@ -102,12 +124,34 @@ extension CacheService {
         }
     }
     
-    func clearAllData() {
+    var appEnvironment: AppEnvironment {
         
-        Keys.allData.forEach {
-            clear(cacheKey: $0)
+        let rawValue = defaults.string(forKey: Keys.currentAppEnvironmentKey)
+                    ?? AppEnvironment.real.rawValue
+        
+        let appEnvironment = AppEnvironment(rawValue: rawValue) ?? .real
+        return appEnvironment
+    }
+    
+    func refreshAppEnvironmentIfNeeded() {
+        
+        let previousAppEnvironment = defaults.string(forKey: Keys.previousAppEnvironmentKey)
+        let currentAppEnvironment = defaults.string(forKey: Keys.currentAppEnvironmentKey)
+        
+        // Clear cache if app environment changed
+        if previousAppEnvironment != currentAppEnvironment {
+            
+            Logger.log(
+                "App Environment changed to \(currentAppEnvironment ?? "unknown")), clearing cache",
+                level: .debug
+            )
+            
+            Keys.allData.forEach {
+                clearAllObjects(cacheKey: $0)
+            }
         }
         
-        Logger.log("All caches cleared", level: .debug)
+        // Save the current setting as the previous one
+        defaults.set(currentAppEnvironment, forKey: Keys.previousAppEnvironmentKey)
     }
 }

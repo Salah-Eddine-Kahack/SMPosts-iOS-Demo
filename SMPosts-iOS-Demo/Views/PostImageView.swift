@@ -30,7 +30,10 @@ struct PostImageView: View {
                         ProgressView()
                         
                     case .success(let image):
-                        image.resizable()
+                        image
+                        .resizable()
+                        .scaledToFill()
+                        .clipped()
                         
                     default:
                         Text("Failed to load image")

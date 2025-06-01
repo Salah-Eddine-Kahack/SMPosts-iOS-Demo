@@ -8,25 +8,42 @@
 import SwiftUI
 
 
-enum AppEnvironment {
-    case mock
-    case real
+// MARK: - Enums
+
+enum AppEnvironment: String {
+    case mock = "app_environment_mock"
+    case real = "app_environment_real"
 }
 
 
 @main
 struct SMPosts_iOS_DemoApp: App {
+
+    // MARK: - Properties
     
-    private var environment: AppEnvironment = .real
+    private let cacheService = CacheService.shared
     
-    init() {
-        CacheService.shared.clearCacheAtLaunchIfNeeded()
+    // MARK: - Getters
+    
+    private var environment: AppEnvironment {
+        cacheService.appEnvironment
     }
     
+    // MARK: - Life cycle
+
+    init() {
+        cacheService.clearCacheAtLaunchIfNeeded()
+        cacheService.refreshAppEnvironmentIfNeeded()
+    }
+    
+    // MARK: - UI
+
     var body: some Scene {
         
         WindowGroup {
-            PostListView(appEnvironment: environment)
+            PostListView(
+                appEnvironment: environment
+            )
         }
     }
 }

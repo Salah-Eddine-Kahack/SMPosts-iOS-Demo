@@ -9,7 +9,7 @@ import Foundation
 import Combine
 
 
-class PostListViewModel: ObservableObject {
+class PostViewModel: ObservableObject {
     
     // MARK: - Enums
     
@@ -72,9 +72,75 @@ class PostListViewModel: ObservableObject {
             // Append new items
             self.posts.append(contentsOf: receivedPosts)
             
+            // Make sure new items display on top
+            self.posts.sort { $0.id > $1.id }
+            
             // Update state
             self.listState = self.posts.isEmpty ? .empty : .loaded
         }
         .store(in: &cancellables)
+    }
+    
+    func addPost(title: String, content: String, creationCompletion: @escaping (Bool, String)->Void) {
+        
+        // Form Validation
+        let trimmedTitle = title.trimmingCharacters(in: .whitespaces)
+        let trimmedContent = content.trimmingCharacters(in: .whitespaces)
+        
+        guard !trimmedTitle.isEmpty && !trimmedContent.isEmpty
+        else {
+            creationCompletion(false, Constants.Texts.Errors.createPostInvalidForm)
+            return
+        }
+        
+        // Make sure we use a non existing ID
+        let latestPostID = posts.first?.id ?? posts.count
+        let newPostID = latestPostID + 1
+        
+        // Call the API to create a post
+        service.createPost(
+            postId: newPostID,
+            title: trimmedTitle,
+            body: trimmedContent
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { completion in
+            
+            if case .failure(let error) = completion {
+                // Handle error state
+                creationCompletion(false, error.localizedDescription)
+            }
+        }
+        receiveValue: { [weak self] newPost in
+            
+            guard let self else { return }
+            
+            // Append new item on top
+            self.posts.insert(newPost, at: .zero)
+            
+            // Update state
+            self.listState = self.posts.isEmpty ? .empty : .loaded
+            
+            creationCompletion(true, "")
+        }
+        .store(in: &cancellables)
+    }
+    
+    func deletePost(at index: Int) {
+        
+        // Get the selected post
+        let postToDelete = posts[index]
+        
+        // Call API
+        service.deletePost(postId: postToDelete.id)
+        
+        // Remove from cache
+        CacheService.shared.deleteObject(postToDelete)
+        
+        // Remove item from data
+        posts.remove(at: index)
+        
+        // Update state
+        self.listState = self.posts.isEmpty ? .empty : .loaded
     }
 }

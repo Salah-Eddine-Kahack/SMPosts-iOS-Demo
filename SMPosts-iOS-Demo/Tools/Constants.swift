@@ -32,6 +32,7 @@ struct Constants {
         static let mediumSpacing: CGFloat = 20.0
         static let largeSpacing: CGFloat = 32.0
         static let cornerRadius: CGFloat = 10.0
+        static let shadowRadius: CGFloat = 12.0
         static let largeCornerRadius: CGFloat = cornerRadius + regularSpacing
         
         struct PostList {
@@ -40,8 +41,13 @@ struct Constants {
         }
         
         struct PostDetail {
-            static let headerImageWidth: CGFloat = 1024.0
-            static let headerImageHeight: CGFloat = 512.0
+            static let fullImageWidth: CGFloat = 1024.0
+            static let fullImageHeight: CGFloat = 512.0
+            static let headerImageHeight: CGFloat = 200.0
+        }
+        
+        struct PostForm {
+            static let contentTextViewHeight: CGFloat = 200.0
         }
     }
     
@@ -57,6 +63,7 @@ struct Constants {
     struct Texts {
         
         private static let context: String = "general"
+        static let okButtonTitle: String = NSLocalizedString("OK", comment: context)
         
         struct PostList {
             private static let context: String = "post-list"
@@ -74,14 +81,22 @@ struct Constants {
         
         struct PostForm {
             private static let context: String = "post-form"
+            static let title: String = NSLocalizedString("New Post", comment: context)
             static let titleLabelText: String = NSLocalizedString("Title:", comment: context)
             static let contentLabelText: String = NSLocalizedString("Content:", comment: context)
+            static let submitButtonTitle: String = NSLocalizedString("Create Post", comment: context)
+            static let cancelButtonTitle: String = NSLocalizedString("Cancel", comment: context)
+            static let titlePlaceholderText: String = NSLocalizedString("What's on your mind ?", comment: context)
+            static let contentPlaceholderText: String = NSLocalizedString("Describe your thoughts...", comment: context)
+            static let createPostErrorAlertTitle: String = NSLocalizedString("Error", comment: context)
         }
         
         struct Errors {
             private static let context: String = "error-messages"
             static let mockDataLoadingFailed: String = NSLocalizedString("Failed to load mock data.", comment: context)
             static let noInternetConnection: String = NSLocalizedString("No internet connection, please try again later", comment: context)
+            static let createPostFailed: String = NSLocalizedString("Failed to create a new post. Please try again later.", comment: context)
+            static let createPostInvalidForm: String = NSLocalizedString("Please fill all fields.", comment: context)
         }
     }
     
@@ -91,7 +106,8 @@ struct Constants {
         
         struct Posts {
             static let mockFileURL = Bundle.main.url(forResource: "posts", withExtension: "json")
-            static let apiURL = URL(string: "https://jsonplaceholder.typicode.com/posts")
+            static let apiBase = "https://jsonplaceholder.typicode.com/posts"
+            static let apiURL = URL(string: apiBase)
         }
 
         struct Comments {
@@ -109,7 +125,7 @@ struct Constants {
         struct Images {
             static let apiBase = "https://picsum.photos/seed/"
             static let thumbnailSuffix = "/\(Int(Sizes.PostList.thumbnailImageWidth))" + "/\(Int(Sizes.PostList.thumbnailImageHeight))"
-            static let fullSuffix = "/\(Int(Sizes.PostDetail.headerImageWidth))" + "/\(Int(Sizes.PostDetail.headerImageHeight))"
+            static let fullSuffix = "/\(Int(Sizes.PostDetail.fullImageWidth))" + "/\(Int(Sizes.PostDetail.fullImageHeight))"
         }
     }
 }

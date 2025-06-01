@@ -33,36 +33,57 @@ struct PostDetailView: View {
         
         ZStack {
             
-            Constants.Colors.secondaryBackground
+            Rectangle()
+            .fill(
+                Gradient(
+                    colors: [Constants.Colors.background, Constants.Colors.secondaryBackground]
+                )
+            )
             .ignoresSafeArea(edges: .all)
             
-            VStack(spacing: .zero) {
+            ScrollView {
                 
-                VStack(alignment: .leading, spacing: Constants.Sizes.regularSpacing) {
+                VStack(spacing: .zero) {
                     
-                    PostImageView(url: post.detailImageURL)
-                    .cornerRadius(Constants.Sizes.cornerRadius)
-                    
-                    VStack(alignment: .leading, spacing: Constants.Sizes.smallSpacing) {
+                    VStack(alignment: .leading, spacing: Constants.Sizes.regularSpacing) {
                         
-                        Text(post.title)
-                            .font(.headline)
-                            .foregroundStyle(Constants.Colors.primary)
+                        PostImageView(url: post.detailImageURL)
+                            .frame(height: Constants.Sizes.PostDetail.headerImageHeight)
+                            .aspectRatio(
+                                Constants.Sizes.PostDetail.fullImageWidth / Constants.Sizes.PostDetail.fullImageHeight,
+                                contentMode: .fit
+                            )
+                            .cornerRadius(Constants.Sizes.cornerRadius)
                         
-                        Text(post.content)
-                            .font(.body)
+                        VStack(alignment: .leading, spacing: Constants.Sizes.smallSpacing) {
+                            
+                            HStack {
+                                
+                                Text(post.title)
+                                    .font(.headline)
+                                    .foregroundStyle(Constants.Colors.primary)
+                                
+                                Spacer()
+                            }
+                            
+                            HStack {
+                                
+                                Text(post.content)
+                                    .font(.body)
+                                    .lineLimit(nil)
+                                
+                                Spacer()
+                            }
+                        }
                     }
-                }
-                .padding(.vertical, Constants.Sizes.regularSpacing)
-                .padding(.horizontal, Constants.Sizes.mediumSpacing)
-                .background(Constants.Colors.background)
-                
-                Text(commentsSectionTitle)
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, Constants.Sizes.regularSpacing)
-
-                ScrollView {
+                    .padding(.vertical, Constants.Sizes.regularSpacing)
+                    .padding(.horizontal, Constants.Sizes.mediumSpacing)
+                    .background(Constants.Colors.background)
+                    
+                    Text(commentsSectionTitle)
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, Constants.Sizes.regularSpacing)
                     
                     VStack(spacing: .zero) {
                         
@@ -90,18 +111,20 @@ struct PostDetailView: View {
                         .padding(.vertical, Constants.Sizes.tinySpacing)
                         .padding(.horizontal, Constants.Sizes.mediumSpacing)
                     }
+                    .padding(.top, Constants.Sizes.smallSpacing)
+                    .padding(.bottom, Constants.Sizes.mediumSpacing)
+                    
+                    Spacer()
                 }
-                .padding(.top, Constants.Sizes.smallSpacing)
-                .padding(.bottom, Constants.Sizes.mediumSpacing)
+                .background(Constants.Colors.secondaryBackground)
                 
-                Spacer()
             }
-            .background(Constants.Colors.secondaryBackground)
         }
         .ignoresSafeArea(edges: .bottom)
     }
 }
 
+// MARK: - Preview
 
 #Preview {
     PostDetailView(

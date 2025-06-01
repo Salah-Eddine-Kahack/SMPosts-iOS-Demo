@@ -17,6 +17,7 @@ struct PostRowView: View {
     // MARK: - UI
     
     var body: some View {
+        
         VStack(alignment: .leading, spacing: Constants.Sizes.smallSpacing) {
             
             HStack(alignment: .top) {

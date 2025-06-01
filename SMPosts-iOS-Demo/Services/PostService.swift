@@ -21,6 +21,8 @@ protocol PostServiceProtocol {
     func fetchDTOComments(postId: Int) -> AnyPublisher<[CommentDTO], Error>
     
     func fetchPosts() -> AnyPublisher<[Post], Error>
+    func createPost(postId: Int, title: String, body: String) -> AnyPublisher<Post, Error>
+    func deletePost(postId: Int) // Fire and forget (good enough for this demo project)
 }
 
 // MARK: - Error types
@@ -28,11 +30,13 @@ protocol PostServiceProtocol {
 enum PostServiceError: LocalizedError {
     
     case failedToLoadMockData
+    case failedToCreatePost
     case noInternet
     
     var errorDescription: String? {
         switch self {
             case .failedToLoadMockData: return Constants.Texts.Errors.mockDataLoadingFailed
+            case .failedToCreatePost: return Constants.Texts.Errors.createPostFailed
             case .noInternet: return Constants.Texts.Errors.noInternetConnection
         }
     }
@@ -125,11 +129,41 @@ class MockPostService: PostServiceProtocol {
         }
         .eraseToAnyPublisher()
     }
+    
+    func createPost(postId: Int,
+                    title: String,
+                    body: String) -> AnyPublisher<Post, Error> {
+                
+        // Create a mock new Post (hence not having comments)
+        let mockPost = Post(
+            id: postId,
+            title: title,
+            content: body,
+            authorEmail: "mockuser@smposts.com",
+            comments: [],
+            thumbnailURL: Self.makeThumbnailImageURL(seed: postId),
+            detailImageURL: Self.makeFullImageURL(seed: postId)
+        )
+        
+        return Just(mockPost)
+        .setFailureType(to: Error.self)
+        .eraseToAnyPublisher()
+    }
+    
+    func deletePost(postId: Int) {
+        
+        Logger.log(
+            "Mock deletePost called for postId: \(postId)",
+            level: .debug
+        )
+    }
 }
 
 // MARK: - Real Service
 
 class PostService: PostServiceProtocol {
+    
+    private var cancellables = Set<AnyCancellable>()
     
     private func fetch<T: Cachable>(from url: URL?) -> AnyPublisher<[T], Error> {
         
@@ -161,7 +195,7 @@ class PostService: PostServiceProtocol {
                 return Fail(error: error).eraseToAnyPublisher()
             }
             .handleEvents(receiveOutput: { objects in
-                CacheService.shared.save(objects)
+                CacheService.shared.saveArrayOfObjects(objects)
             })
             .eraseToAnyPublisher()
     }
@@ -211,14 +245,14 @@ class PostService: PostServiceProtocol {
             .collect()
         }
         .handleEvents(receiveOutput: { objects in
-            CacheService.shared.save(objects)
+            CacheService.shared.saveArrayOfObjects(objects)
         })
         .eraseToAnyPublisher()
     }
     
     private func loadFromCache<T: Cachable>() -> AnyPublisher<[T], Error>? {
         
-        let cachedObjects: [T] = CacheService.shared.load()
+        let cachedObjects: [T] = CacheService.shared.loadArrayOfObjects()
         
         if cachedObjects.isEmpty {
             return nil
@@ -227,6 +261,118 @@ class PostService: PostServiceProtocol {
         return Just(cachedObjects)
         .setFailureType(to: Error.self)
         .eraseToAnyPublisher()
+    }
+    
+    func createPost(postId: Int,
+                    title: String,
+                    body: String) -> AnyPublisher<Post, Error> {
+        
+        guard let url = Constants.URLs.Posts.apiURL else {
+            return Fail(error: URLError(.badURL))
+            .eraseToAnyPublisher()
+        }
+        
+        guard ReachabilityHelper.shared.hasInternetAccess else {
+            return Fail(error: PostServiceError.noInternet)
+            .eraseToAnyPublisher()
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Compose the post body with a fake user id
+        let bodyDict: [String: Any] = [
+            "userId": 0,
+            "title": title,
+            "body": body
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: bodyDict, options: [])
+        }
+        catch {
+            return Fail(error: error).eraseToAnyPublisher()
+        }
+        
+        return URLSession.shared.dataTaskPublisher(for: request)
+        .tryMap { data, response in
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200..<300).contains(httpResponse.statusCode) else {
+                throw URLError(.badServerResponse)
+            }
+            return data
+        }
+        .decode(type: PostDTO.self, decoder: JSONDecoder())
+        .flatMap { receivedPostDTO -> AnyPublisher<Post?, Never> in
+            
+            let newPostDTO = PostDTO(
+                id: postId, // Making sure we use our post ID
+                userId: Int.random(in: 1...10), // Making sure we have a valid user ID
+                title: receivedPostDTO.title,
+                body: receivedPostDTO.body
+            )
+            
+            return self.makePost(postDTO: newPostDTO)
+        }
+        .tryMap { post in
+            
+            guard let post else {
+                throw PostServiceError.failedToCreatePost
+            }
+            
+            let postWithoutComments = Post(
+                id: post.id,
+                title: title, // Making sure we use our title
+                content: body, // Making sure we use our content
+                authorEmail: post.authorEmail,
+                comments: [], // A new post shouldn't have comments
+                thumbnailURL: post.thumbnailURL,
+                detailImageURL: post.detailImageURL
+            )
+            
+            return postWithoutComments
+        }
+        .handleEvents(receiveOutput: { object in
+            CacheService.shared.saveObject(object)
+        })
+        .eraseToAnyPublisher()
+    }
+    
+    func deletePost(postId: Int) {
+        
+        guard let url = URL(string: "\(Constants.URLs.Posts.apiBase)/\(postId)") else {
+            Logger.log("Failed to create post deletion URL", level: .warning)
+            return
+        }
+        
+        guard ReachabilityHelper.shared.hasInternetAccess else {
+            Logger.log("No internet access to delete post", level: .warning)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        
+        URLSession.shared.dataTaskPublisher(for: request)
+        .tryMap { data, response in
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200..<300).contains(httpResponse.statusCode) else {
+                throw URLError(.badServerResponse)
+            }
+        }
+        .sink(receiveCompletion: { completion in
+            
+            switch completion {
+                    
+                case .finished:
+                    Logger.log("Successfully deleted post with ID \(postId)", level: .debug)
+                    
+                case .failure(let error):
+                    Logger.log("Failed to delete post with ID \(postId): \(error)", level: .warning)
+            }
+        }, receiveValue: {})
+        .store(in: &cancellables)
     }
 }
 

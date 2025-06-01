@@ -8,7 +8,7 @@
 import Foundation
 
 
-struct Post: Identifiable, Cachable {
+struct Post: Cachable {
     
     // MARK: - Properties
     

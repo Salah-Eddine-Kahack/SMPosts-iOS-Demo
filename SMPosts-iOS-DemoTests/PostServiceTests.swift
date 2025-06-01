@@ -239,7 +239,7 @@ final class PostServiceTests: XCTestCase {
             waitForExpectations(timeout: 5.0)
             
             // Check results
-            XCTAssertNil(receivedError, "Expected no error, but got \(String(describing: receivedError))")
+            XCTAssertNil(receivedError, "Expected no error, but got \(String(describing: receivedError)) instead")
             XCTAssertNil(receivedUser, "Expected nil for an unknown user ID, but somehow got a user")
         }
         
@@ -272,7 +272,7 @@ final class PostServiceTests: XCTestCase {
             waitForExpectations(timeout: 5.0)
             
             // Check results
-            XCTAssertNil(receivedError, "Expected no error, but got \(String(describing: receivedError))")
+            XCTAssertNil(receivedError, "Expected no error, but got \(String(describing: receivedError)) instead")
             
             let user = try XCTUnwrap(receivedUser)
             let expectedUserEmail = "Nathan@yesenia.net"
@@ -325,7 +325,7 @@ final class PostServiceTests: XCTestCase {
             waitForExpectations(timeout: 5.0)
             
             // Check results
-            XCTAssertNil(receivedError, "Expected no error, but got \(String(describing: receivedError))")
+            XCTAssertNil(receivedError, "Expected no error, but got \(String(describing: receivedError)) instead")
             XCTAssertTrue(receivedComments.isEmpty, "Expected zero comments, but somehow got \(receivedComments.count)")
         }
         
@@ -358,7 +358,7 @@ final class PostServiceTests: XCTestCase {
             waitForExpectations(timeout: 5.0)
             
             // Check results
-            XCTAssertNil(receivedError, "Expected no error, but got \(String(describing: receivedError))")
+            XCTAssertNil(receivedError, "Expected no error, but got \(String(describing: receivedError)) instead")
             XCTAssertGreaterThan(receivedComments.count, .zero, "Expected a non-empty list of comments")
             
             let firstComment = try XCTUnwrap(receivedComments.first)
@@ -457,6 +457,76 @@ final class PostServiceTests: XCTestCase {
                 lastPostLastComment.authorEmail,
                 expectedLastPostLastCommentAuthorEmail,
                 "Expected last post's last comment's author's email to be \(expectedLastPostLastCommentAuthorEmail), but got \(lastPostLastComment.authorEmail) instead"
+            )
+        }
+    }
+    
+    func test_PostService_createPost() throws {
+        
+        let service = PostServiceFactory.makeService(environment: .mock)
+        let expectation = self.expectation(description: "createPost should return a mock Post object")
+        
+        try XCTContext.runActivity(
+            named: "createPost should return a mock Post object"
+        ) { _ in
+            
+            var receivedPost: Post?
+            var receivedError: Error?
+            
+            let inputedPostID: Int = 1
+            let inputedTitle: String = "Test Title"
+            let inputedBody: String = "Test Body"
+            
+            // Create Post
+            service.createPost(
+                postId: inputedPostID,
+                title: inputedTitle,
+                body: inputedBody
+            )
+            .sink(receiveCompletion: { completion in
+                
+                switch completion {
+                    case .failure(let error): receivedError = error
+                    case .finished: break
+                }
+                
+                expectation.fulfill()
+            },
+            receiveValue: { post in
+                receivedPost = post
+            })
+            .store(in: &cancellables)
+            
+            // Give it time to load
+            waitForExpectations(timeout: 5.0)
+            
+            // Check results
+            XCTAssertNil(receivedError, "Expected no error, but got \(String(describing: receivedError)) instead")
+            
+            let post = try XCTUnwrap(receivedPost)
+            
+            XCTAssertEqual(
+                post.id,
+                inputedPostID,
+                "Expected new post ID to be equivalent to the inputed ID \"\(inputedPostID)\", but got \(post.id) instead"
+            )
+            
+            XCTAssertEqual(
+                post.title,
+                inputedTitle,
+                "Expected new post title to be equivalent to the inputed title \"\(inputedTitle)\", but got \(post.title) instead"
+            )
+            
+            XCTAssertEqual(
+                post.content,
+                inputedBody,
+                "Expected new post body to be equivalent to the inputed body \"\(inputedBody)\", but got \(post.content) instead"
+            )
+            
+            XCTAssertEqual(
+                post.comments.count,
+                .zero,
+                "Expected new post to have no comments, but got \(post.comments.count) instead"
             )
         }
     }
